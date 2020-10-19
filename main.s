@@ -9,20 +9,18 @@ main:
 
 	org	0x100		    ; Main code starts here at address 0x100
 start:
-	movlw   0xff		;all bits in
-	movwf   TRISD, A	;Port D all input
-	
 	movlw 	0x0
-	movwf	TRISC, A	    ; Port C all outputs
+	movwf	TRISC, A ; Port C all outputs
+	movwf	0x06	    ;sets 0x06 at 0
+	movlw	0x08	    ;sets W to max 4
 	bra 	test
-loop:	movff 	0x06, LATC
-	incf 	0x06, 0, 0        ;original code: 0x06, W, A
+loop:	
+        movff 	0x06, LATC
+	incf 	0x06, 1, 0 
 test:
-	movwf	0x06, A	    ; Test for end of loop condition
-	;movf	PORTD, 0    ;read PORTD to W
-	movlw 	0xFF
 	cpfsgt 	0x06, A
-	bra 	loop		    ; Not yet finished goto start of loop again
+	bra 	loop
+	
 	goto	0x0	    ;Re-run program from start
 
 	end	main
