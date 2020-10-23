@@ -10,7 +10,7 @@ main:
 	org	0x100	; Main code starts here at address 0x100
 
 start:
-	movlw	0x63	;setting delay literal
+	movlw	0xFF	;setting delay literal
 	movwf	0x20	;move literal from line above into this address
 	
 	movlw 	0x0
@@ -26,7 +26,7 @@ loop:
 		
 delay:  
 	decfsz  0x20, 1, 0 
-	movlw	0x63	;setting cascaded delay literal
+	movlw	0xFF	;setting cascaded delay literal
 	movwf	0x21
 	call	another_delay
 	tstfsz	0x20, 0
