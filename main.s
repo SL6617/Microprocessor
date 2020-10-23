@@ -2,47 +2,31 @@
 	#include <xc.inc>
 
 psect	code, abs
-
-main:
-	org	0x0
+;Programme FLASH read Setup Code
+setup:	bcf	CFGS	;point to Flash program memory
+	bsf	EEPGD	;access Flash program memory
 	goto	start
 
-	org	0x100	; Main code starts here at address 0x100
-
+MyTable: 
+	db	0x0, 0x01, 0x02, 0x03  ;defines 1D array of data
+	MyArray EQU 0x400   ;address in RAM where we want data saved
+	Counter EQU 0x04    ;Address for counter variable. should be length of data list
+ 
 start:
-	movlw	0xFF	;setting delay literal
-	movwf	0x20	;move literal from line above into this address
-	
-	movlw 	0x0
-	movwf	TRISC, A ; Port C all outputs
-	movwf	0x06	    ;sets 0x06 at 0		
-	goto 	test
+	lfsr	0, MyArray  ;load FSR0 with RAM address
+	movlw	low highword(MyTable)	;address of data in PM
+	movwf	TBLPTRU, 1
+	movlw	high(MyTable)
+	movwf	TBLPTRH, 1
+	movlw	low(MyTable)
+	movwf	TBLPTRL, 1
+	movlw	4
+	movwf	Counter, 1
 
-loop:	
+loop:	tblrd*+
+	movff	TABLAT, POSTINC0
+	decfsz	Counter, 1
+	bra	loop
+	goto	0
 	
-	movff 	0x06, LATC
-	incf 	0x06, 1, 0
-	goto    test
-		
-delay:  
-	decfsz  0x20, 1, 0 
-	movlw	0xFF	;setting cascaded delay literal
-	movwf	0x21
-	call	another_delay
-	tstfsz	0x20, 0
-	bra	delay
-	return
 
-another_delay:
-	decfsz	0x21, 1, 0
-	bra     another_delay
-	return
-
-test:	
-	call	delay
-	movlw	0x03
-	cpfsgt 	0x06, A
-	bra 	loop
-	
-	goto	0x0		
-	end	main	
