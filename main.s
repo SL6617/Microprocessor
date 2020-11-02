@@ -2,31 +2,178 @@
 	#include <xc.inc>
 
 psect	code, abs
-;Programme FLASH read Setup Code
-setup:	bcf	CFGS	;point to Flash program memory
-	bsf	EEPGD	;access Flash program memory
-	goto	start
+start:	
+	goto	main
 
-MyTable: 
-	db	0x0, 0x01, 0x02, 0x03  ;defines 1D array of data
-	MyArray EQU 0x400   ;address in RAM where we want data saved
-	Counter EQU 0x04    ;Address for counter variable. should be length of data list
- 
-start:
-	lfsr	0, MyArray  ;load FSR0 with RAM address
-	movlw	low highword(MyTable)	;address of data in PM
-	movwf	TBLPTRU, 1
-	movlw	high(MyTable)
-	movwf	TBLPTRH, 1
-	movlw	low(MyTable)
-	movwf	TBLPTRL, 1
-	movlw	4
-	movwf	Counter, 1
+write:
+	clrf	TRISD, A    ;PORTD is output only
+	setf	TRISE, A
+	bsf	PORTD, 0, A  ;CP2 high
+	bsf	PORTD, 1, A  ;OE*2 high
 
-loop:	tblrd*+
-	movff	TABLAT, POSTINC0
-	decfsz	Counter, 1
-	bra	loop
-	goto	0
+	clrf	TRISE, A    ;PORTE low
+
+	bcf	PORTD,0,A   ;sets CP2 as low
+	movlw   0x04	    ;literal to be written into memory chip
+	movwf   PORTE, A
+	movlw   0xff	    ;setting the delay literal
+	movwf   0x21	    ;register for delay literal
+	call another_delay
+	bsf	PORTD,0,A    ;sets CP2 as high
 	
+	return
+    
+read:	
+	clrf	TRISF, A    ;PORTC all output
+	
+	bcf	PORTD,1,A   ;OE2* set as low
+	
+	call another_delay
+	movff	PORTE, LATF, A ;reading memory output will be on PORTC
+	
+	bsf	PORTD,1,A   ;sets OE2* as high
+	setf	TRISE, A    ;TRISE all high
+	return
+
+
+
+another_delay:
+	decfsz	0x21, 1, 0
+	bra     another_delay
+	return
+    
+
+ main:
+	call    write
+	call    read
+    	end     main 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
