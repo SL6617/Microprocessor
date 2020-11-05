@@ -12,8 +12,8 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>main.s</itemPath>
       <itemPath>config.s</itemPath>
+      <itemPath>main.s</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -30,13 +30,13 @@
         <targetDevice>PIC18F87K22</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>ICD3PlatformTool</platformTool>
+        <platformTool>Simulator</platformTool>
         <languageToolchain>pic-as</languageToolchain>
         <languageToolchainVersion>2.30</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <packs>
-        <pack name="PIC18F-K_DFP" vendor="Microchip" version="1.2.72"/>
+        <pack name="PIC18F-K_DFP" vendor="Microchip" version="1.4.87"/>
       </packs>
       <ScriptingSettings>
       </ScriptingSettings>
@@ -595,10 +595,8 @@
         <property key="linker-libraries" value=""/>
         <property key="linker-library-search-paths" value=""/>
         <property key="linker-maxi-chip" value="false"/>
-        <property key="linker-produce-elf-dwarf-output" value="true"/>
         <property key="linker-produce-intel-hex-extended-address-zero-output"
                   value="false"/>
-        <property key="linker-produce-intel-hex-output" value="false"/>
         <property key="linker-ram" value=""/>
         <property key="linker-reserve" value=""/>
         <property key="linker-rom" value=""/>
