@@ -4,13 +4,12 @@
 psect	code, abs
 main: 
     
-    clrf TRISC, A ; set leds at port C as output
+    ;clrf TRISC, A ; set leds at port C as output - DON'T NEED AS USING THE EXTERNAL LEDS TO CONNECT DIRECTLY TO OUTPUT
     call SPI_paralell_to_series
     call shift_series_to_paralell
     movlw   0xff	    ;setting the delay literal
     movwf   0x21	    ;register for delay literal
     call another_delay
-    
     goto main
     
 SPI_paralell_to_series:
@@ -23,12 +22,13 @@ SPI_paralell_to_series:
 shift_series_to_paralell:
     movlw 0x08, 1,0
     movwf 0x32
+    BSF PORTD, 9, A; set the MR as high so shit happens
     call clock_it_in
-    
+    ;should be on outputs now  i think lol
 
 clock_it_in:
-    bCf PORTD,0
-    BsF PORTD, 0
+    bCf PORTD,8, A ; clock pulse port D low
+    BsF PORTD, 8, A; clock pusle HIGH - data should be read on the rise of this.
     decfsz 0x32, A ;0x32  adress to store number 8, so we clock in only 8 times
     bra clock_it_in
     return
