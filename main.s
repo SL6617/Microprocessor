@@ -13,7 +13,7 @@ main:
     call mega_alarm
      
 setup:;initialize then programme devices but don't turn on
-    light_set_up:
+    light_set_up: -S
     buzzer_set_up: - S
     LCD_set_up:  -B
 
