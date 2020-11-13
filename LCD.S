@@ -1,6 +1,6 @@
 #include <xc.inc>
 
-global  LCD_Setup, LCD_Write_Message
+global  LCD_Setup, LCD_Write_Message, LCD_Setup_Bottom, LCD_delay_x4us
 
 psect	udata_acs   ; named variables in access ram
 LCD_cnt_l:	ds 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -45,6 +45,38 @@ LCD_Setup:
 	movlw	10		; wait 40us
 	call	LCD_delay_x4us
 	return
+
+LCD_Setup_Bottom:   ; display isn't cleared and cursor starts bottom left
+	clrf    LATB, A
+	movlw   11000000B	    ; RB0:5 all outputs
+	movwf	TRISB, A
+	movlw   40
+	call	LCD_delay_ms	; wait 40ms for LCD to start up properly
+	movlw	00110000B	; Function set 4-bit
+	call	LCD_Send_Byte_I
+	movlw	10		; wait 40us
+	call	LCD_delay_x4us
+	movlw	00101000B	; 2 line display 5x8 dot characters
+	call	LCD_Send_Byte_I
+	movlw	10		; wait 40us
+	call	LCD_delay_x4us
+	movlw	00101000B	; repeat, 2 line display 5x8 dot characters
+	call	LCD_Send_Byte_I
+	movlw	10		; wait 40us
+	call	LCD_delay_x4us
+	movlw	00001111B	; display on, cursor on, blinking on
+	call	LCD_Send_Byte_I
+	movlw	10		; wait 40us
+	call	LCD_delay_x4us
+	movlw	00000110B	; entry mode incr by 1 no shift
+	call	LCD_Send_Byte_I
+	movlw	10		; wait 40us
+	call	LCD_delay_x4us
+	movlw	11000000B	; cursor starts on bottom line
+	call	LCD_Send_Byte_I
+	movlw	10		; wait 40us
+	call	LCD_delay_x4us    
+	return	
 
 LCD_Write_Message:	    ; Message stored at FSR2, length stored in W
 	movwf   LCD_counter, A
@@ -135,4 +167,4 @@ lcdlp1:	decf 	LCD_cnt_l, F, A	; no carry when 0x00 -> 0xff
 
     end
 
-
+    
