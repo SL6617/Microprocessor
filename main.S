@@ -3,6 +3,7 @@
 extrn	UART_Setup, UART_Transmit_Message  ; external subroutines
 extrn	LCD_Setup, LCD_Write_Message
 extrn	LCD_Setup_Bottom, LCD_delay_x4us
+extrn	LCD_Setup_Top, LCD_delay_ms
 	
 psect	udata_acs   ; reserve data space in access ram
 counter:    ds 1    ; reserve one byte for a counter variable
@@ -45,30 +46,54 @@ psect	udata_bank5 ; reserve data anywhere in RAM (here at 0x500)
 Ca_array:    ds 0x80 ; reserve 128 bytes for message data
 psect	data   
 messCa:
-    	db	' ',' ',' ',' ','C','A','L','L','I','N','G'
-	messCa_l   EQU	12	; length of datA
+    	db	'*','*','*','*','C','A','L','L','I','N','G','*','*','*','*','*'
+	messCa_l   EQU	17	; length of datA
 	align	2
 psect	udata_bank6 ; reserve data anywhere in RAM (here at 0x600)
 Cb_array:    ds 0x80 ; reserve 128 bytes for message data
 psect	data    
 messCb:
-    	db	' ',' ',' ','T','H','E',' ','P','O','L','I','C','E'
-	messAb_l   EQU	13	; length of datA
+    	db	'*','*','*','T','H','E',' ','P','O','L','I','C','E','*','*','*'
+	messCb_l   EQU	17	; length of datA
 	align	2
+	
 	
 psect	code, abs	
 rst: 	org 0x0
-;LCD Setup Code
+	goto	setup
+
+setup:	;LCD Setup Code
 	bcf	CFGS	; point to Flash program memory  
 	bsf	EEPGD 	; access Flash program memory
-	call	UART_Setup	; setup UART	
-	goto	main
-; ******* Main programme ****************************************
-main:	
-	call	writeAa
-
-writeAa:
+	call	UART_Setup	; setup UART
 	call	LCD_Setup
+	goto	main
+
+; ******* Main programme ****************************************
+    
+writeA:	;writes 'keycode' message
+	call	writeAa
+	movlw	20		; wait 40us
+	call	LCD_delay_x4us
+	call	writeAb
+	return
+
+writeB:	;writes 'incorrect' message
+	call	writeBa
+	movlw	20		; wait 40us
+	call	LCD_delay_x4us
+	call	writeBb
+	return
+	
+writeC:	;writes 'police' message
+	call	writeCa
+	movlw	20		; wait 40us
+	call	LCD_delay_x4us
+	call	writeCb
+	return	
+	
+writeAa:
+	call	LCD_Setup_Top
 	lfsr	0, Aa_array	; Load FSR0 with address in RAM	
 	movlw	low highword(messAa)	; address of data in PM
 	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
@@ -78,17 +103,16 @@ writeAa:
 	movwf	TBLPTRL, A		; load low byte to TBLPTRL
 	movlw	messAa_l	; bytes to read
 	movwf 	counter, A		; our counter register
-loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
+loopAa: tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
 	decfsz	counter, A		; count down to zero
-	bra	loop		; keep going until finished
+	bra	loopAa		; keep going until finished
 		
 	movlw	messAa_l	; output message to UART
 	lfsr	2, Aa_array
 	call	UART_Transmit_Message
 	
 	movlw	messAa_l	; output message to LCD
-	addlw	0xff		; don't send the final carriage return to LCD
 	lfsr	2, Aa_array
 	call	LCD_Write_Message
 	return
@@ -104,15 +128,14 @@ writeAb:
 	movwf	TBLPTRL, A		; load low byte to TBLPTRL
 	movlw	messAb_l	; bytes to read
 	movwf 	counter, A		; our counter register
-loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
+loopAb: tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
 	decfsz	counter, A		; count down to zero
-	bra	loop		; keep going until finished
+	bra	loopAb		; keep going until finished
 		
 	movlw	messAb_l	; output message to UART
 	lfsr	2, Ab_array
 	call	UART_Transmit_Message
-	return
 
 	movlw	messAb_l	; output message to LCD
 	addlw	0xff		; don't send the final carriage return to LCD
@@ -120,3 +143,133 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	call	LCD_Write_Message
 	return
 
+writeBa:
+	call	LCD_Setup_Top
+	lfsr	0, Ba_array	; Load FSR0 with address in RAM	
+	movlw	low highword(messBa)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(messBa)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(messBa)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	messBa_l	; bytes to read
+	movwf 	counter, A		; our counter register
+loopBa: tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
+	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
+	decfsz	counter, A		; count down to zero
+	bra	loopBa		; keep going until finished
+		
+	movlw	messBa_l	; output message to UART
+	lfsr	2, Ba_array
+	call	UART_Transmit_Message
+	
+	movlw	messBa_l	; output message to LCD
+	addlw	0xff		; don't send the final carriage return to LCD
+	lfsr	2, Ba_array
+	call	LCD_Write_Message
+	return
+
+writeBb:
+	call	LCD_Setup_Bottom
+	lfsr	0, Bb_array	; Load FSR0 with address in RAM	
+	movlw	low highword(messBb)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(messBb)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(messBb)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	messBb_l	; bytes to read
+	movwf 	counter, A		; our counter register
+loopBb: tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
+	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
+	decfsz	counter, A		; count down to zero
+	bra	loopBb		; keep going until finished
+		
+	movlw	messBb_l	; output message to UART
+	lfsr	2, Bb_array
+	call	UART_Transmit_Message
+
+	movlw	messBb_l	; output message to LCD
+	addlw	0xff		; don't send the final carriage return to LCD
+	lfsr	2, Bb_array
+	call	LCD_Write_Message
+	return
+
+writeCa:
+	call	LCD_Setup_Top
+	lfsr	0, Ca_array	; Load FSR0 with address in RAM	
+	movlw	low highword(messCa)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(messCa)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(messCa)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	messCa_l	; bytes to read
+	movwf 	counter, A		; our counter register
+loopCa: tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
+	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
+	decfsz	counter, A		; count down to zero
+	bra	loopCa		; keep going until finished
+		
+	movlw	messCa_l	; output message to UART
+	lfsr	2, Ca_array
+	call	UART_Transmit_Message
+	
+	movlw	messCa_l	; output message to LCD
+	addlw	0xff		; don't send the final carriage return to LCD
+	lfsr	2, Ca_array
+	call	LCD_Write_Message
+	return
+
+writeCb:
+	call	LCD_Setup_Bottom
+	lfsr	0, Cb_array	; Load FSR0 with address in RAM	
+	movlw	low highword(messCb)	; address of data in PM
+	movwf	TBLPTRU, A		; load upper bits to TBLPTRU
+	movlw	high(messCb)	; address of data in PM
+	movwf	TBLPTRH, A		; load high byte to TBLPTRH
+	movlw	low(messCb)	; address of data in PM
+	movwf	TBLPTRL, A		; load low byte to TBLPTRL
+	movlw	messCb_l	; bytes to read
+	movwf 	counter, A		; our counter register
+loopCb: tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
+	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
+	decfsz	counter, A		; count down to zero
+	bra	loopCb		; keep going until finished
+		
+	movlw	messCb_l	; output message to UART
+	lfsr	2, Cb_array
+	call	UART_Transmit_Message
+
+	movlw	messCb_l	; output message to LCD
+	addlw	0xff		; don't send the final carriage return to LCD
+	lfsr	2, Cb_array
+	call	LCD_Write_Message
+	return
+
+main:	
+	call	writeA
+	movlw	0xff		; wait 2ms
+	call	LCD_delay_ms
+	movlw	0xff		; wait 2ms
+	call	LCD_delay_ms
+	movlw	0xff		; wait 2ms
+	call	LCD_delay_ms
+	
+	call	writeB
+	movlw	0xff		; wait 2ms
+	call	LCD_delay_ms
+	movlw	0xff		; wait 2ms
+	call	LCD_delay_ms
+	movlw	0xff		; wait 2ms
+	call	LCD_delay_ms
+	
+	call	writeC
+	movlw	0xff		; wait 2ms
+	call	LCD_delay_ms
+	movlw	0xff		; wait 2ms
+	call	LCD_delay_ms
+	movlw	0xff		; wait 2ms
+	call	LCD_delay_ms
+
+end main	
