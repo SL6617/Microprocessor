@@ -1,15 +1,16 @@
 #include <xc.inc>
 
-extrn	DAC_Setup, DAC_Int_Hi
+setup:
+	banksel	PADCFG1  ;loading PADCFG1 into BSR	
+	bsf	REPU  ;enabling pull-up 
+	clrf	LATE, 0
+	movlw	0x0f
+	movwf	TRISE, 0   ;sets pins 0-3 high (input) & 4-7 low (output)
+	clrf	TRISF	;PORTF all outputs
+	bra	main
 
-psect	code, abs
-rst:	org	0x0000	; reset vector
-	goto	start
-
-int_hi:	org	0x0008	; high vector, no low vector
-	goto	DAC_Int_Hi
+main:
+	movlw	0x63
+	movwf	0x20, 0
+	movff	PORTE, LATF
 	
-start:	call	DAC_Setup
-	goto	$	; Sit in infinite loop
-
-	end	rst
