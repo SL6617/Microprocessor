@@ -14,3 +14,16 @@ main:
 	movwf	0x20, 0
 	movff	PORTE, LATF
 	
+delay:
+	decfsz  0x20, 1, 0
+	movlw   0x63
+	movwf   0x21
+	call    another_delay
+	tstfsz  0x20, 0
+	bra	delay
+	return
+	    
+another_delay:
+	decfsz  0x21, 1, 0
+	bra	another_delay
+	return
